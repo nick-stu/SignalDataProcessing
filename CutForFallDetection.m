@@ -3,17 +3,24 @@ clc; close all; clear;
 fs=1190; % 采样频率
 % 读取路径
 date='.\0912';
-set='\hyd_walkHeavy\';
+set='\hyd_walkHeavy';
 isGCC=0; cacheSize=20;
 Debug=0; % 设为1时注意不要一次性处理太多数据
 limit=-1; 
+isConcatNoise=1;
+L=1220; 
 %% 设置切断函数参数
 thresIn=3;
 edge=100;
 %% BatchCut
-basepath=[date,set];
-outpath=[date,'_processed_',num2str(fs),'hz\',set];
-
+basepath=[date,set,'\'];
+if isConcatNoise==1
+    outpath=[date,'_processed_',num2str(fs),'hz\',set,'_Noise\'];
+else
+    outpath=[date,'_processed_',num2str(fs),'hz\',set,'\'];
+end
+% 噪声
+load('noise');
 % 创建文件夹
 if ~exist(outpath,'dir') %判断是否存在这个文件夹，若不存在则创建该文件夹
     mkdir(outpath); %创建文件夹
@@ -75,6 +82,12 @@ for i=1:size(dirs,1)
             else
                 data=seg_data;
             end
+            
+            %% 拼接噪声
+            if isConcatNoise==1
+                data = [data noise(:,1:L-length(data))];
+            end
+            
             % Save
             saveIndex=saveIndex+1;
             save([outpath,num2str(saveIndex)],'data');
