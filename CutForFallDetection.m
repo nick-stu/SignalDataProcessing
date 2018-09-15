@@ -2,17 +2,24 @@ clc; close all; clear;
 %% 输入参数
 fs=1190; % 采样频率
 % 读取路径
-date='.\0912';
-set='\hyd_walkHeavy';
+date='.\0913';
+set='\lmy_fallA';
+peakLen=35; % 10 35
 isGCC=0; cacheSize=20;
 Debug=0; % 设为1时注意不要一次性处理太多数据
 limit=-1; 
-isConcatNoise=1;
 L=1220; 
 %% 设置切断函数参数
-thresIn=3;
+thresIn=1.0;
 edge=100;
 %% BatchCut
+
+if peakLen==35
+    isConcatNoise=0;
+else 
+    isConcatNoise=1;
+end
+
 basepath=[date,set,'\'];
 if isConcatNoise==1
     outpath=[date,'_processed_',num2str(fs),'hz\',set,'_Noise\'];
@@ -50,7 +57,7 @@ for i=1:size(dirs,1)
     data1(1:edge)=[]; data2(1:edge)=[]; data3(1:edge)=[];
     data=sum([data1;data2;data3],1);
     
-    [result,beg_,end_]=seg_var(data,fs,thresIn,Debug);
+    [result,beg_,end_]=seg_var(data,fs,thresIn,Debug,peakLen);
 %         [beg_,end_,peakSize]=my_sig_seg_old(data,fs,Lm,Rm,ethresh(i-2),minlen,maxInter,minInter,segLen,Debug);
 
     if(result==1) % 成功切段
@@ -102,6 +109,7 @@ for i=1:size(dirs,1)
             plot([beg_(loop),beg_(loop)],[min(data3),max(data3)],'r');
             plot([end_(loop),end_(loop)],[min(data3),max(data3)],'r');
             text(beg_(loop),max(data1),num2str(loop));
+            title(['The LAST CUT FROM ' dirs(i).name ' TO ' num2str(saveIndex)]);
         end
         
         fprintf(['peakNum:-----------------',num2str(length(beg_)),'\n']);
